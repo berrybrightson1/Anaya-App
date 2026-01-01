@@ -65,7 +65,7 @@ export default function InstallPrompt() {
                             👶
                         </div>
                         <div>
-                            <h3 className="font-bold text-gray-900">Add Woody to Home Screen?</h3>
+                            <h3 className="font-bold text-gray-900">Add Anaya to Home Screen?</h3>
                             <p className="text-xs text-gray-500 mt-1">Install for a better experience.</p>
                         </div>
                     </div>
@@ -87,7 +87,7 @@ export default function InstallPrompt() {
             <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md p-6 pb-8 border-t border-gray-200 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] animate-in slide-in-from-bottom duration-700">
                 <div className="flex items-start justify-between mb-4">
                     <div>
-                        <h3 className="font-bold text-lg text-gray-900">Install "Woody"</h3>
+                        <h3 className="font-bold text-lg text-gray-900">Install "Anaya"</h3>
                         <p className="text-sm text-gray-600 mt-1">Add to your Home Screen for the full experience.</p>
                     </div>
                     <button onClick={() => setIsIOS(false)} className="bg-gray-100 rounded-full p-1 text-gray-500" aria-label="Close">
