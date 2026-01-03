@@ -1,10 +1,28 @@
 import prisma from "@/lib/prisma";
 import StoreInterface from "@/components/StoreInterface";
+import { notFound } from "next/navigation";
 
 export const dynamic = 'force-dynamic';
 
-export default async function StorePage() {
+interface Props {
+    params: {
+        storeSlug: string;
+    }
+}
+
+export default async function StorePage({ params }: Props) {
+    const { storeSlug } = params;
+
+    const store = await prisma.store.findUnique({
+        where: { slug: storeSlug }
+    });
+
+    if (!store) {
+        notFound();
+    }
+
     const products = await prisma.product.findMany({
+        where: { storeId: store.id },
         orderBy: { createdAt: "desc" }
     });
 

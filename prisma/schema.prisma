@@ -1,17 +1,49 @@
 generator client {
   provider = "prisma-client-js"
 }
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// --- Multi-Tenancy Core ---
+
+model Store {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  tier        StoreTier @default(HUSTLER)
+  ownerPhone  String?
+  
+  users       User[]
+  products    Product[]
+  orders      Order[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// --- Application Models ---
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed
+  name      String
+  role      String   @default("STAFF") // "OWNER" | "STAFF"
+  
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
 
 model Product {
   id             String   @id @default(cuid())
   name           String
   description    String?
-  image          String?  // Changed from images String[] for SQLite simplicity/prototype
+  image          String?
   
   // Pricing
   priceRetail    Decimal
@@ -24,12 +56,16 @@ model Product {
   
   // Organization
   category       String   @default("General")
-  tags           String?  // Changed from String[] for SQLite (comma separated)
+  tags           String?
   stockQty       Int      @default(0)
   
   // Bundle Logic
   isBundle       Boolean  @default(false)
   bundleItems    BundleItem[] @relation("ParentBundle")
+  
+  // Tenancy
+  storeId        String
+  store          Store    @relation(fields: [storeId], references: [id])
   
   createdAt      DateTime @default(now())
   orderItems     OrderItem[]
@@ -37,9 +73,16 @@ model Product {
 
 model BundleItem {
   id        String  @id @default(cuid())
+  
   bundleId  String
   bundle    Product @relation("ParentBundle", fields: [bundleId], references: [id])
-  productId String  // The child item
+  
+  productId String  
+  // In a real app, we might want to relation to the child Product too, but to keep it simple and avoid circular mess/complex deletes, ID ref is okay. 
+  // However, usually better to have a relation if we want to ensure referential integrity.
+  // For now I'll keep it as ID based on previous schema, but arguably it should be related. 
+  // Let's stick to previous schema style to minimize drift, unless strictly needed.
+  
   quantity  Int     @default(1)
 }
 
@@ -51,6 +94,10 @@ model Order {
   
   total     Decimal
   items     OrderItem[]
+  
+  // Tenancy
+  storeId   String
+  store     Store     @relation(fields: [storeId], references: [id])
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -69,11 +116,8 @@ model OrderItem {
   price     Decimal // Price at time of purchase
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // Hashed
-  name      String
-  role      String   @default("STAFF") // "OWNER" | "STAFF"
-  createdAt DateTime @default(now())
+enum StoreTier {
+  HUSTLER
+  PRO
+  WHOLESALER
 }

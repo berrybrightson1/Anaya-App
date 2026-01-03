@@ -3,24 +3,37 @@ import type { NextRequest } from 'next/server';
 import { decrypt } from '@/lib/auth';
 
 export async function middleware(request: NextRequest) {
-    const cookie = request.cookies.get('session')?.value;
-    const session = cookie ? await decrypt(cookie) : null;
+    const { pathname } = request.nextUrl;
 
-    // 2. Protect Admin Routes
-    if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {
-        if (!session) {
-            return NextResponse.redirect(new URL('/admin/login', request.url));
+    // Regex: Matches /something/admin...
+    // Captures the store slug in group 1
+    const adminRegex = /^\/([^/]+)\/admin/;
+    const match = pathname.match(adminRegex);
+
+    if (match) {
+        const storeSlug = match[1];
+        const isLogin = pathname.startsWith(`/${storeSlug}/admin/login`);
+
+        const cookie = request.cookies.get('session')?.value;
+        const session = cookie ? await decrypt(cookie) : null;
+
+        // 2. Protect Admin Routes
+        if (!isLogin) {
+            if (!session) {
+                return NextResponse.redirect(new URL(`/${storeSlug}/admin/login`, request.url));
+            }
         }
-    }
 
-    // 3. Prevent Login access if already logged in
-    if (request.nextUrl.pathname.startsWith('/admin/login') && session) {
-        return NextResponse.redirect(new URL('/admin/inventory', request.url));
+        // 3. Prevent Login access if already logged in
+        if (isLogin && session) {
+            return NextResponse.redirect(new URL(`/${storeSlug}/admin/inventory`, request.url));
+        }
     }
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ['/admin/:path*'],
+    // Match all paths except static files and api
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

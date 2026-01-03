@@ -6,7 +6,7 @@ import { Package, ShoppingBag, Users, BarChart, Store, ChevronUp, LogOut, Menu }
 import { useState } from "react";
 import { logout } from "@/app/admin/login/actions";
 
-export default function AdminSidebar({ user }: { user: any }) {
+export default function AdminSidebar({ user, storeTier = 'HUSTLER' }: { user: any, storeTier?: string }) {
     const pathname = usePathname();
     const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
@@ -81,8 +81,8 @@ export default function AdminSidebar({ user }: { user: any }) {
                         active={pathname?.startsWith("/admin/inventory")}
                     />
 
-                    {/* Only show these for Owner */}
-                    {isOwner && (
+                    {/* Only show these for Owner & PRO/WHOLESALER */}
+                    {isOwner && storeTier !== 'HUSTLER' && (
                         <>
                             <NavLink
                                 href="/admin/orders"

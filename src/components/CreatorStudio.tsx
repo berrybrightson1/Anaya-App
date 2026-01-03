@@ -2,10 +2,15 @@
 
 import { PlusCircle, Image as ImageIcon, X, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
-import { createProduct } from "@/app/admin/inventory/actions";
 import { compressImage } from "@/utils/imageCompression";
 
-export default function CreatorStudio() {
+export default function CreatorStudio({
+    createAction,
+    storeTier = 'HUSTLER'
+}: {
+    createAction: (formData: FormData) => Promise<void>,
+    storeTier?: string
+}) {
     const [preview, setPreview] = useState<string | null>(null);
     const [isCompressing, setIsCompressing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +69,7 @@ export default function CreatorStudio() {
             </h3>
             <form
                 action={async (formData) => {
-                    await createProduct(formData);
+                    await createAction(formData);
                     formRef.current?.reset();
                     setPreview(null);
                 }}
@@ -78,7 +83,6 @@ export default function CreatorStudio() {
                             type="text"
                             placeholder="e.g. Pampers Premium Care"
                             required
-                            // 1. Product Name Input
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-brand-cyan/20 outline-none text-gray-900 placeholder:text-gray-400 font-medium"
                         />
                     </div>
@@ -90,10 +94,23 @@ export default function CreatorStudio() {
                             step="0.01"
                             placeholder="0.00"
                             required
-                            // 2. Price Input
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-brand-cyan/20 outline-none text-gray-900 placeholder:text-gray-400 font-medium"
                         />
                     </div>
+
+                    {storeTier !== 'HUSTLER' && (
+                        <div className="animate-in fade-in slide-in-from-top-2">
+                            <label className="text-xs font-bold text-gray-800 uppercase text-brand-orange">Wholesale (₵)</label>
+                            <input
+                                name="priceWholesale"
+                                type="number"
+                                step="0.01"
+                                placeholder="Bulk Price"
+                                className="w-full border border-brand-orange/20 bg-brand-orange/5 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-brand-orange/20 outline-none text-gray-900 font-medium"
+                            />
+                        </div>
+                    )}
+
                     <div>
                         <label className="text-xs font-bold text-gray-800 uppercase">Category</label>
                         <select
@@ -124,10 +141,22 @@ export default function CreatorStudio() {
                             type="number"
                             placeholder="10"
                             defaultValue="10"
-                            // 5. Stock Input
                             className="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-brand-cyan/20 outline-none text-gray-900 placeholder:text-gray-400 font-medium"
                         />
                     </div>
+
+                    {storeTier !== 'HUSTLER' && (
+                        <>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">SKU</label>
+                                <input name="sku" type="text" placeholder="Stock Unit ID" className="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 outline-none text-xs" />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase">Weight (kg)</label>
+                                <input name="weight" type="number" step="0.01" placeholder="0.5" className="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 outline-none text-xs" />
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Image Upload Area */}
